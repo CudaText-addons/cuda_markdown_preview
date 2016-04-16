@@ -1,1 +1,4 @@
-ext = ['tables', 'codehilite', 'fenced_code']
+ext = [
+  'markdown.extensions.extra',
+  'markdown.extensions.codehilite', 
+  ]
