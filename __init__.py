@@ -8,21 +8,18 @@ from .cuda_markdown_options import ext
 sys.path.append(os.path.dirname(__file__))
 import markdown
 from mdx_gfm import GithubFlavoredMarkdownExtension
-from gfm import AutolinkExtension, TaskListExtension
+from gfm import AutolinkExtension, AutomailExtension, TaskListExtension
 
 fn_temp = os.path.join(tempfile.gettempdir(), 'markdown_preview.html')
 
 ext += [GithubFlavoredMarkdownExtension()]
-ext += [AutolinkExtension(), TaskListExtension()]
+ext += [AutolinkExtension(), AutomailExtension(), TaskListExtension()]
 md = markdown.Markdown(extensions=ext)
 
 class Command:
     def run(self):
-        text = ed.get_text_sel()
-        if not text:
-            text = ed.get_text_all()
-        if not text:
-            return
+        text = ed.get_text_all()
+        if not text: return
 
         text = md.convert(text)
 
