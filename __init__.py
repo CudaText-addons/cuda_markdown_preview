@@ -3,18 +3,14 @@ import os
 import webbrowser
 import tempfile
 from cudatext import *
-from .cuda_markdown_options import ext
 
 sys.path.append(os.path.dirname(__file__))
 import markdown
-from mdx_gfm import GithubFlavoredMarkdownExtension
-from gfm import AutolinkExtension, AutomailExtension, TaskListExtension
+from .cuda_markdown_options import ext
+md = markdown.Markdown(extensions=ext)
 
 fn_temp = os.path.join(tempfile.gettempdir(), 'markdown_preview.html')
 
-ext += [GithubFlavoredMarkdownExtension()]
-ext += [AutolinkExtension(), AutomailExtension(), TaskListExtension()]
-md = markdown.Markdown(extensions=ext)
 
 class Command:
     def run(self):
