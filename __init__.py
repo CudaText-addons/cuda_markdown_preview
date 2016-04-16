@@ -1,22 +1,19 @@
-from cudatext import *
 import sys
 import os
 import webbrowser
 import tempfile
+from cudatext import *
+from .cuda_markdown_options import ext
 
 sys.path.append(os.path.dirname(__file__))
 import markdown
+from mdx_gfm import GithubFlavoredMarkdownExtension
+from gfm import AutolinkExtension, TaskListExtension
 
-TEMP = 'markdown_preview.html'
-INI = 'markdown.cfg'
+fn_temp = os.path.join(tempfile.gettempdir(), 'markdown_preview.html')
 
-ext = []
-ini = os.path.join(os.path.dirname(__file__), INI)
-if os.path.isfile(ini):
-    with open(ini) as f:
-        d = eval(f.read())
-        ext = d['extensions']
-
+ext += [GithubFlavoredMarkdownExtension()]
+ext += [AutolinkExtension(), TaskListExtension()]
 md = markdown.Markdown(extensions=ext)
 
 class Command:
@@ -29,12 +26,11 @@ class Command:
 
         text = md.convert(text)
 
-        fn = os.path.join(tempfile.gettempdir(), TEMP)
-        with open(fn, 'w') as f:
+        with open(fn_temp, 'w') as f:
             f.write(text)
 
-        if os.path.isfile(fn):
+        if os.path.isfile(fn_temp):
             msg_status('Opening HTML preview...')
-            webbrowser.open_new_tab(fn)
+            webbrowser.open_new_tab(fn_temp)
         else:
-            msg_status('Cannot convert text to HTML')
+            msg_status('Cannot convert Markdown to HTML')

@@ -1,7 +1,9 @@
 Plugin "Markdown Preview" for CudaText.
-It converts Markdown text to HTML (using this Python library), and then opens HTML file in browser. If selection is made then only selection is processed, otherwise entire file is processed.
+It converts Markdown text to HTML (using Python library), and then opens HTML file in browser. 
+If selection is made then only selection is processed, otherwise entire file is processed.
 
-You can use file "markdown.cfg" to init set of Markdown extensions. Possible quoted values (comma-separated) are:
+You can use file "cuda_markdown_options.py" to init set of Markdown extensions. 
+Possible quoted values (comma-separated):
 
     Extra - 'extra'
     Abbreviations - 'abbr'
@@ -22,3 +24,4 @@ You can use file "markdown.cfg" to init set of Markdown extensions. Possible quo
     WikiLinks - 'wikilinks' 
 
 Author: Alexey T.
+License: MIT
