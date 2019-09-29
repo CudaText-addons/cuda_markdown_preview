@@ -16,7 +16,7 @@ section = 'markdown_preview'
 LIVE_SCRIPT = """
 <script type="text/javascript">
             function refreshPage () {
-                document.location.reload(false);
+                document.location.reload(true);
             }
             window.onload = function () {
                 setTimeout(refreshPage, 2000);
