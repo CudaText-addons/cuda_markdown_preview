@@ -2,8 +2,6 @@
 2019.09.29
 + added command "Configure live update": it enables browser to auto-reload HTML each N seconds, and editor updates HTML file on each editing
 + plugin deletes its temp files on CudaText exit
-+ updated all libs
-* disabled GitHub Flavored Markdown, because libs (gfm, mdx_gfm) are incompatible with newer Markdown lib
 
 2016.04.16
 + support Github Flavored Markdown
