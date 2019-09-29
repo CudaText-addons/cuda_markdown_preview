@@ -10,3 +10,7 @@ section=commands
 caption=Markdown Preview
 method=run
 lexers=Markdown
+
+[item2]
+section=events
+events=on_exit
