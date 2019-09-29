@@ -5,7 +5,7 @@
 
     Pygments lexers for JVM languages.
 
-    :copyright: Copyright 2006-2015 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2019 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
@@ -21,7 +21,7 @@ from pygments import unistring as uni
 __all__ = ['JavaLexer', 'ScalaLexer', 'GosuLexer', 'GosuTemplateLexer',
            'GroovyLexer', 'IokeLexer', 'ClojureLexer', 'ClojureScriptLexer',
            'KotlinLexer', 'XtendLexer', 'AspectJLexer', 'CeylonLexer',
-           'PigLexer', 'GoloLexer', 'JasminLexer']
+           'PigLexer', 'GoloLexer', 'JasminLexer', 'SarlLexer']
 
 
 class JavaLexer(RegexLexer):
@@ -59,25 +59,27 @@ class JavaLexer(RegexLexer):
              Keyword.Type),
             (r'(package)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
             (r'(true|false|null)\b', Keyword.Constant),
-            (r'(class|interface)(\s+)', bygroups(Keyword.Declaration, Text), 'class'),
-            (r'(import)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
+            (r'(class|interface)(\s+)', bygroups(Keyword.Declaration, Text),
+             'class'),
+            (r'(import(?:\s+static)?)(\s+)', bygroups(Keyword.Namespace, Text),
+             'import'),
             (r'"(\\\\|\\"|[^"])*"', String),
             (r"'\\.'|'[^\\]'|'\\u[0-9a-fA-F]{4}'", String.Char),
             (r'(\.)((?:[^\W\d]|\$)[\w$]*)', bygroups(Operator, Name.Attribute)),
             (r'^\s*([^\W\d]|\$)[\w$]*:', Name.Label),
             (r'([^\W\d]|\$)[\w$]*', Name),
-            (r'([0-9](_*[0-9]+)*\.([0-9](_*[0-9]+)*)?|'
-             r'([0-9](_*[0-9]+)*)?\.[0-9](_*[0-9]+)*)'
-             r'([eE][+\-]?[0-9](_*[0-9]+)*)?[fFdD]?|'
-             r'[0-9][eE][+\-]?[0-9](_*[0-9]+)*[fFdD]?|'
-             r'[0-9]([eE][+\-]?[0-9](_*[0-9]+)*)?[fFdD]|'
-             r'0[xX]([0-9a-fA-F](_*[0-9a-fA-F]+)*\.?|'
-             r'([0-9a-fA-F](_*[0-9a-fA-F]+)*)?\.[0-9a-fA-F](_*[0-9a-fA-F]+)*)'
-             r'[pP][+\-]?[0-9](_*[0-9]+)*[fFdD]?', Number.Float),
-            (r'0[xX][0-9a-fA-F](_*[0-9a-fA-F]+)*[lL]?', Number.Hex),
-            (r'0[bB][01](_*[01]+)*[lL]?', Number.Bin),
-            (r'0(_*[0-7]+)+[lL]?', Number.Oct),
-            (r'0|[1-9](_*[0-9]+)*[lL]?', Number.Integer),
+            (r'([0-9][0-9_]*\.([0-9][0-9_]*)?|'
+             r'\.[0-9][0-9_]*)'
+             r'([eE][+\-]?[0-9][0-9_]*)?[fFdD]?|'
+             r'[0-9][eE][+\-]?[0-9][0-9_]*[fFdD]?|'
+             r'[0-9]([eE][+\-]?[0-9][0-9_]*)?[fFdD]|'
+             r'0[xX]([0-9a-fA-F][0-9a-fA-F_]*\.?|'
+             r'([0-9a-fA-F][0-9a-fA-F_]*)?\.[0-9a-fA-F][0-9a-fA-F_]*)'
+             r'[pP][+\-]?[0-9][0-9_]*[fFdD]?', Number.Float),
+            (r'0[xX][0-9a-fA-F][0-9a-fA-F_]*[lL]?', Number.Hex),
+            (r'0[bB][01][01_]*[lL]?', Number.Bin),
+            (r'0[0-7_]+[lL]?', Number.Oct),
+            (r'0|[1-9][0-9_]*[lL]?', Number.Integer),
             (r'[~^*!%&\[\](){}<>|+=:;,./?-]', Operator),
             (r'\n', Text)
         ],
@@ -255,7 +257,7 @@ class ScalaLexer(RegexLexer):
              u'\ua77d-\ua77e\ua780\ua782\ua784\ua786\ua78b\uff21-\uff3a]')
 
     idrest = u'%s(?:%s|[0-9])*(?:(?<=_)%s)?' % (letter, letter, op)
-    letter_letter_digit = u'%s(?:%s|\d)*' % (letter, letter)
+    letter_letter_digit = u'%s(?:%s|\\d)*' % (letter, letter)
 
     tokens = {
         'root': [
@@ -564,14 +566,14 @@ class IokeLexer(RegexLexer):
         ],
 
         'slashRegexp': [
-            (r'(?<!\\)/[oxpniums]*', String.Regex, '#pop'),
+            (r'(?<!\\)/[im-psux]*', String.Regex, '#pop'),
             include('interpolatableText'),
             (r'\\/', String.Regex),
             (r'[^/]', String.Regex)
         ],
 
         'squareRegexp': [
-            (r'(?<!\\)][oxpniums]*', String.Regex, '#pop'),
+            (r'(?<!\\)][im-psux]*', String.Regex, '#pop'),
             include('interpolatableText'),
             (r'\\]', String.Regex),
             (r'[^\]]', String.Regex)
@@ -687,7 +689,7 @@ class IokeLexer(RegexLexer):
             # functions
             (u'(generateMatchMethod|aliasMethod|\u03bb|\u028E|fnx|fn|method|'
              u'dmacro|dlecro|syntax|macro|dlecrox|lecrox|lecro|syntax)'
-             u'(?![\w!:?])', Name.Function),
+             u'(?![\\w!:?])', Name.Function),
 
             # Numbers
             (r'-?0[xX][0-9a-fA-F]+', Number.Hex),
@@ -799,7 +801,7 @@ class ClojureLexer(RegexLexer):
 
     # TODO / should divide keywords/symbols into namespace/rest
     # but that's hard, so just pretend / is part of the name
-    valid_name = r'(?!#)[\w!$%*+<=>?/.#-]+'
+    valid_name = r'(?!#)[\w!$%*+<=>?/.#|-]+'
 
     tokens = {
         'root': [
@@ -1004,7 +1006,7 @@ class KotlinLexer(RegexLexer):
 
     .. versionadded:: 1.5
     """
-
+    
     name = 'Kotlin'
     aliases = ['kotlin']
     filenames = ['*.kt']
@@ -1015,15 +1017,22 @@ class KotlinLexer(RegexLexer):
     kt_name = ('@?[_' + uni.combine('Lu', 'Ll', 'Lt', 'Lm', 'Nl') + ']' +
                '[' + uni.combine('Lu', 'Ll', 'Lt', 'Lm', 'Nl', 'Nd', 'Pc', 'Cf',
                                  'Mn', 'Mc') + ']*')
-    kt_id = '(' + kt_name + '|`' + kt_name + '`)'
+    
+    kt_space_name = ('@?[_' + uni.combine('Lu', 'Ll', 'Lt', 'Lm', 'Nl') + ']' +
+               '[' + uni.combine('Lu', 'Ll', 'Lt', 'Lm', 'Nl', 'Nd', 'Pc', 'Cf',
+                                 'Mn', 'Mc', 'Zs') + ',-]*')
+
+    kt_id = '(' + kt_name + '|`' + kt_space_name + '`)'
 
     tokens = {
         'root': [
             (r'^\s*\[.*?\]', Name.Attribute),
             (r'[^\S\n]+', Text),
+            (r'\s+', Text),
             (r'\\\n', Text),  # line continuation
             (r'//.*?\n', Comment.Single),
             (r'/[*].*?[*]/', Comment.Multiline),
+            (r'""".*?"""', String),
             (r'\n', Text),
             (r'::|!!|\?[:.]', Operator),
             (r'[~!%^&*()+=|\[\]:;,.<>/?-]', Punctuation),
@@ -1033,11 +1042,14 @@ class KotlinLexer(RegexLexer):
             (r"'\\.'|'[^\\]'", String.Char),
             (r"[0-9](\.[0-9]*)?([eE][+-][0-9]+)?[flFL]?|"
              r"0[xX][0-9a-fA-F]+[Ll]?", Number),
-            (r'(class)(\s+)(object)', bygroups(Keyword, Text, Keyword)),
+            (r'(object)(\s+)(:)(\s+)', bygroups(Keyword, Text, Punctuation, Text), 'class'),
+            (r'(companion)(\s+)(object)', bygroups(Keyword, Text, Keyword)),
             (r'(class|interface|object)(\s+)', bygroups(Keyword, Text), 'class'),
             (r'(package|import)(\s+)', bygroups(Keyword, Text), 'package'),
+            (r'(val|var)(\s+)([(])', bygroups(Keyword, Text, Punctuation), 'property_dec'),
             (r'(val|var)(\s+)', bygroups(Keyword, Text), 'property'),
             (r'(fun)(\s+)', bygroups(Keyword, Text), 'function'),
+            (r'(inline fun)(\s+)', bygroups(Keyword, Text), 'function'),
             (r'(abstract|annotation|as|break|by|catch|class|companion|const|'
              r'constructor|continue|crossinline|data|do|dynamic|else|enum|'
              r'external|false|final|finally|for|fun|get|if|import|in|infix|'
@@ -1056,9 +1068,26 @@ class KotlinLexer(RegexLexer):
         'property': [
             (kt_id, Name.Property, '#pop')
         ],
+        'property_dec': [
+            (r'(,)(\s*)', bygroups(Punctuation, Text)),
+            (r'(:)(\s*)', bygroups(Punctuation, Text)),
+            (r'<', Punctuation, 'generic'),
+            (r'([)])', Punctuation, '#pop'),
+            (kt_id, Name.Property)
+        ],
         'function': [
+            (r'<', Punctuation, 'generic'),
+            (r''+kt_id+'([.])'+kt_id, bygroups(Name.Class, Punctuation, Name.Function), '#pop'),
             (kt_id, Name.Function, '#pop')
         ],
+        'generic': [
+            (r'(>)(\s*)', bygroups(Punctuation, Text), '#pop'),
+            (r':',Punctuation),
+            (r'(reified|out|in)\b', Keyword),
+            (r',',Text),
+            (r'\s+',Text),
+            (kt_id,Name)
+        ]
     }
 
 
@@ -1256,7 +1285,7 @@ class GoloLexer(RegexLexer):
             (r'-?\d[\d_]*L', Number.Integer.Long),
             (r'-?\d[\d_]*', Number.Integer),
 
-            ('`?[a-zA-Z_][\w$]*', Name),
+            (r'`?[a-zA-Z_][\w$]*', Name),
             (r'@[a-zA-Z_][\w$.]*', Name.Decorator),
 
             (r'"""', String, combined('stringescape', 'triplestring')),
@@ -1569,3 +1598,57 @@ class JasminLexer(RegexLexer):
                      re.MULTILINE):
             score += 0.6
         return score
+
+
+class SarlLexer(RegexLexer):
+	"""
+	For `SARL <http://www.sarl.io>`_ source code.
+	
+	.. versionadded:: 2.4
+	"""
+	
+	name = 'SARL'
+	aliases = ['sarl']
+	filenames = ['*.sarl']
+	mimetypes = ['text/x-sarl']
+	
+	flags = re.MULTILINE | re.DOTALL
+	
+	tokens = {
+		'root': [
+			# method names
+			(r'^(\s*(?:[a-zA-Z_][\w.\[\]]*\s+)+?)'  # return arguments
+			 r'([a-zA-Z_$][\w$]*)'                      # method name
+			 r'(\s*)(\()',                             # signature start
+			 bygroups(using(this), Name.Function, Text, Operator)),
+			(r'[^\S\n]+', Text),
+			(r'//.*?\n', Comment.Single),
+			(r'/\*.*?\*/', Comment.Multiline),
+			(r'@[a-zA-Z_][\w.]*', Name.Decorator),
+			(r'(as|break|case|catch|default|do|else|extends|extension|finally|fires|for|if|implements|instanceof|new|on|requires|return|super|switch|throw|throws|try|typeof|uses|while|with)\b',
+			 Keyword),
+			(r'(abstract|def|dispatch|final|native|override|private|protected|public|static|strictfp|synchronized|transient|val|var|volatile)\b', Keyword.Declaration),
+			 (r'(boolean|byte|char|double|float|int|long|short|void)\b',
+			  Keyword.Type),
+			 (r'(package)(\s+)', bygroups(Keyword.Namespace, Text)),
+			 (r'(false|it|null|occurrence|this|true|void)\b', Keyword.Constant),
+			 (r'(agent|annotation|artifact|behavior|capacity|class|enum|event|interface|skill|space)(\s+)', bygroups(Keyword.Declaration, Text),
+			  'class'),
+			 (r'(import)(\s+)', bygroups(Keyword.Namespace, Text), 'import'),
+			 (r'"(\\\\|\\"|[^"])*"', String),
+			 (r"'(\\\\|\\'|[^'])*'", String),
+			 (r'[a-zA-Z_]\w*:', Name.Label),
+			 (r'[a-zA-Z_$]\w*', Name),
+			 (r'[~^*!%&\[\](){}<>\|+=:;,./?-]', Operator),
+			 (r'[0-9][0-9]*\.[0-9]+([eE][0-9]+)?[fd]?', Number.Float),
+			 (r'0x[0-9a-fA-F]+', Number.Hex),
+			 (r'[0-9]+L?', Number.Integer),
+			 (r'\n', Text)
+		],
+		'class': [
+			(r'[a-zA-Z_]\w*', Name.Class, '#pop')
+		],
+		'import': [
+			(r'[\w.]+\*?', Name.Namespace, '#pop')
+		],
+	}
