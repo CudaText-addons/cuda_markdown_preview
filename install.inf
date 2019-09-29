@@ -7,10 +7,15 @@ homepage=https://github.com/CudaText-addons/cuda_markdown_preview
 
 [item1]
 section=commands
-caption=Markdown Preview
+caption=Markdown Preview\Preview
 method=run
 lexers=Markdown
 
 [item2]
+section=commands
+caption=Markdown Preview\Configure live preview...
+method=config_live
+
+[item10]
 section=events
 events=on_exit

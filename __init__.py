@@ -10,14 +10,19 @@ from .cuda_markdown_options import ext
 md = markdown.Markdown(extensions=ext)
 
 dir_temp = os.path.join(tempfile.gettempdir(), 'cuda_markdown_preview')
+fn_config = os.path.join(app_path(APP_DIR_SETTINGS), 'plugins.ini')
+section = 'markdown_preview'
 
 
 class Command:
+    live = False
 
     def __init__(self):
 
         if not os.path.isdir(dir_temp):
             os.mkdir(dir_temp)
+        self.live = ini_read(fn_config, section, 'autoreload', '0')=='1'
+
 
     def on_exit(self, ed_self):
 
@@ -47,3 +52,13 @@ class Command:
             webbrowser.open_new_tab(fn_temp)
         else:
             msg_status('Cannot convert document to HTML')
+
+    def config_live(self):
+
+        opt = msg_box(
+            'Live update is: %s.\nEnable live update (auto-reload of HTML page + converting of Markdown after each editing)?'%('on' if self.live else 'off'),
+            MB_YESNO+MB_ICONQUESTION) == ID_YES
+        if self.live != opt:
+            self.live = opt
+            ini_write(fn_config, section, 'autoreload', '1' if opt else '0')
+            msg_box('Restart CudaText to apply this option', MB_OK)
