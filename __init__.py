@@ -13,6 +13,17 @@ dir_temp = os.path.join(tempfile.gettempdir(), 'cuda_markdown_preview')
 fn_config = os.path.join(app_path(APP_DIR_SETTINGS), 'plugins.ini')
 section = 'markdown_preview'
 
+LIVE_SCRIPT = """
+<script type="text/javascript">
+            function refreshPage () {
+                document.location.reload(true);
+            }
+            window.onload = function () {
+                setTimeout(refreshPage, 2000);
+            }
+</script>
+"""
+
 
 class Command:
     live = False
@@ -24,14 +35,12 @@ class Command:
             os.mkdir(dir_temp)
         self.live = ini_read(fn_config, section, 'autoreload', '0')=='1'
 
-
     def on_exit(self, ed_self):
 
         if os.path.isdir(dir_temp):
             for f in os.listdir(dir_temp):
                 os.remove(os.path.join(dir_temp, f))
         os.rmdir(dir_temp)
-
 
     def run(self):
 
@@ -40,7 +49,7 @@ class Command:
 
         text = md.convert(text)
         if self.live:
-            text = '<meta http-equiv="refresh" content="%d"/>' % self.live_pause + '\n' + text
+            text = LIVE_SCRIPT+'\n'+text
 
         fn_ed = ed.get_filename()
         if not fn_ed:
@@ -59,13 +68,13 @@ class Command:
 
     def config_live(self):
 
-        opt = msg_box(
-            'Live update is: %s.\nEnable live update (auto-reload of HTML page + converting of Markdown after each editing)?'%('on' if self.live else 'off'),
-            MB_YESNO+MB_ICONQUESTION) == ID_YES
+        msg = 'Live update is: %s.\nEnable live update (auto-reload of HTML page + converting of Markdown after each editing)?\n\nNote: this works only in Chromium-based browsers.'\
+            %('on' if self.live else 'off')
+        opt = msg_box(msg, MB_YESNO+MB_ICONQUESTION) == ID_YES
         if self.live != opt:
             self.live = opt
             ini_write(fn_config, section, 'autoreload', '1' if opt else '0')
-            msg_box('Restart CudaText to apply this option', MB_OK)
+            msg_box('Restart CudaText to apply this option.', MB_OK)
 
     def on_change_slow(self, ed_self):
 
