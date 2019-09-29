@@ -19,3 +19,8 @@ method=config_live
 [item10]
 section=events
 events=on_exit
+
+[item11]
+section=events
+events=on_change_slow
+lexers=Markdown

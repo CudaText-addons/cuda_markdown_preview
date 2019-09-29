@@ -16,6 +16,7 @@ section = 'markdown_preview'
 
 class Command:
     live = False
+    live_pause = 10
 
     def __init__(self):
 
@@ -38,6 +39,9 @@ class Command:
         if not text: return
 
         text = md.convert(text)
+        if self.live:
+            text = '<meta http-equiv="refresh" content="%d"/>' % self.live_pause + '\n' + text
+
         fn_ed = ed.get_filename()
         if not fn_ed:
             msg_status('Cannot preview untitled document')
@@ -62,3 +66,8 @@ class Command:
             self.live = opt
             ini_write(fn_config, section, 'autoreload', '1' if opt else '0')
             msg_box('Restart CudaText to apply this option', MB_OK)
+
+    def on_change_slow(self, ed_self):
+
+        if self.live:
+            self.run()
