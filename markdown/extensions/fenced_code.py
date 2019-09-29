@@ -4,7 +4,7 @@ Fenced Code Extension for Python Markdown
 
 This extension adds Fenced Code Blocks to Python-Markdown.
 
-See <https://pythonhosted.org/Markdown/extensions/fenced_code_blocks.html>
+See <https://Python-Markdown.github.io/extensions/fenced_code_blocks>
 for documentation.
 
 Original code Copyright 2007-2008 [Waylan Limberg](http://achinghead.com/).
@@ -25,19 +25,17 @@ import re
 
 class FencedCodeExtension(Extension):
 
-    def extendMarkdown(self, md, md_globals):
+    def extendMarkdown(self, md):
         """ Add FencedBlockPreprocessor to the Markdown instance. """
         md.registerExtension(self)
 
-        md.preprocessors.add('fenced_code_block',
-                             FencedBlockPreprocessor(md),
-                             ">normalize_whitespace")
+        md.preprocessors.register(FencedBlockPreprocessor(md), 'fenced_code_block', 25)
 
 
 class FencedBlockPreprocessor(Preprocessor):
     FENCED_BLOCK_RE = re.compile(r'''
 (?P<fence>^(?:~{3,}|`{3,}))[ ]*         # Opening ``` or ~~~
-(\{?\.?(?P<lang>[a-zA-Z0-9_+-]*))?[ ]*  # Optional {, and lang
+(\{?\.?(?P<lang>[\w#.+-]*))?[ ]*        # Optional {, and lang
 # Optional highlight lines, single- or double-quote-delimited
 (hl_lines=(?P<quot>"|')(?P<hl_lines>.*?)(?P=quot))?[ ]*
 }?[ ]*\n                                # Optional closing }
@@ -57,7 +55,7 @@ class FencedBlockPreprocessor(Preprocessor):
 
         # Check for code hilite extension
         if not self.checked_for_codehilite:
-            for ext in self.markdown.registeredExtensions:
+            for ext in self.md.registeredExtensions:
                 if isinstance(ext, CodeHiliteExtension):
                     self.codehilite_conf = ext.config
                     break
@@ -81,6 +79,7 @@ class FencedBlockPreprocessor(Preprocessor):
                         guess_lang=self.codehilite_conf['guess_lang'][0],
                         css_class=self.codehilite_conf['css_class'][0],
                         style=self.codehilite_conf['pygments_style'][0],
+                        use_pygments=self.codehilite_conf['use_pygments'][0],
                         lang=(m.group('lang') or None),
                         noclasses=self.codehilite_conf['noclasses'][0],
                         hl_lines=parse_hl_lines(m.group('hl_lines'))
@@ -91,7 +90,7 @@ class FencedBlockPreprocessor(Preprocessor):
                     code = self.CODE_WRAP % (lang,
                                              self._escape(m.group('code')))
 
-                placeholder = self.markdown.htmlStash.store(code, safe=True)
+                placeholder = self.md.htmlStash.store(code)
                 text = '%s\n%s\n%s' % (text[:m.start()],
                                        placeholder,
                                        text[m.end():])
@@ -108,5 +107,5 @@ class FencedBlockPreprocessor(Preprocessor):
         return txt
 
 
-def makeExtension(*args, **kwargs):
-    return FencedCodeExtension(*args, **kwargs)
+def makeExtension(**kwargs):  # pragma: no cover
+    return FencedCodeExtension(**kwargs)
