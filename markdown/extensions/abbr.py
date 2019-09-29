@@ -4,7 +4,7 @@ Abbreviation Extension for Python-Markdown
 
 This extension adds abbreviation handling to Python-Markdown.
 
-See <https://Python-Markdown.github.io/extensions/abbreviations>
+See <https://pythonhosted.org/Markdown/extensions/abbreviations.html>
 for documentation.
 
 Oringinal code Copyright 2007-2008 [Waylan Limberg](http://achinghead.com/) and
@@ -20,7 +20,7 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 from . import Extension
 from ..preprocessors import Preprocessor
-from ..inlinepatterns import InlineProcessor
+from ..inlinepatterns import Pattern
 from ..util import etree, AtomicString
 import re
 
@@ -31,9 +31,9 @@ ABBR_REF_RE = re.compile(r'[*]\[(?P<abbr>[^\]]*)\][ ]?:\s*(?P<title>.*)')
 class AbbrExtension(Extension):
     """ Abbreviation Extension for Python-Markdown. """
 
-    def extendMarkdown(self, md):
+    def extendMarkdown(self, md, md_globals):
         """ Insert AbbrPreprocessor before ReferencePreprocessor. """
-        md.preprocessors.register(AbbrPreprocessor(md), 'abbr', 12)
+        md.preprocessors.add('abbr', AbbrPreprocessor(md), '<reference')
 
 
 class AbbrPreprocessor(Preprocessor):
@@ -51,12 +51,8 @@ class AbbrPreprocessor(Preprocessor):
             if m:
                 abbr = m.group('abbr').strip()
                 title = m.group('title').strip()
-                self.md.inlinePatterns.register(
-                    AbbrInlineProcessor(self._generate_pattern(abbr), title), 'abbr-%s' % abbr, 2
-                )
-                # Preserve the line to prevent raw HTML indexing issue.
-                # https://github.com/Python-Markdown/markdown/issues/584
-                new_text.append('')
+                self.markdown.inlinePatterns['abbr-%s' % abbr] = \
+                    AbbrPattern(self._generate_pattern(abbr), title)
             else:
                 new_text.append(line)
         return new_text
@@ -77,19 +73,19 @@ class AbbrPreprocessor(Preprocessor):
         return r'(?P<abbr>\b%s\b)' % (r''.join(chars))
 
 
-class AbbrInlineProcessor(InlineProcessor):
+class AbbrPattern(Pattern):
     """ Abbreviation inline pattern. """
 
     def __init__(self, pattern, title):
-        super(AbbrInlineProcessor, self).__init__(pattern)
+        super(AbbrPattern, self).__init__(pattern)
         self.title = title
 
-    def handleMatch(self, m, data):
+    def handleMatch(self, m):
         abbr = etree.Element('abbr')
         abbr.text = AtomicString(m.group('abbr'))
         abbr.set('title', self.title)
-        return abbr, m.start(0), m.end(0)
+        return abbr
 
 
-def makeExtension(**kwargs):  # pragma: no cover
-    return AbbrExtension(**kwargs)
+def makeExtension(*args, **kwargs):
+    return AbbrExtension(*args, **kwargs)

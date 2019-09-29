@@ -4,7 +4,7 @@ Definition List Extension for Python-Markdown
 
 Adds parsing of Definition Lists to Python-Markdown.
 
-See <https://Python-Markdown.github.io/extensions/definition_lists>
+See <https://pythonhosted.org/Markdown/extensions/definition_lists.html>
 for documentation.
 
 Original code Copyright 2008 [Waylan Limberg](http://achinghead.com)
@@ -51,7 +51,7 @@ class DefListProcessor(BlockProcessor):
         sibling = self.lastChild(parent)
         if not terms and sibling is None:
             # This is not a definition item. Most likely a paragraph that
-            # starts with a colon at the beginning of a document or list.
+            # starts with a colon at the begining of a document or list.
             blocks.insert(0, raw_block)
             return False
         if not terms and sibling.tag == 'p':
@@ -59,7 +59,7 @@ class DefListProcessor(BlockProcessor):
             state = 'looselist'
             terms = sibling.text.split('\n')
             parent.remove(sibling)
-            # Acquire new sibling
+            # Aquire new sibling
             sibling = self.lastChild(parent)
         else:
             state = 'list'
@@ -101,11 +101,15 @@ class DefListIndentProcessor(ListIndentProcessor):
 class DefListExtension(Extension):
     """ Add definition lists to Markdown. """
 
-    def extendMarkdown(self, md):
+    def extendMarkdown(self, md, md_globals):
         """ Add an instance of DefListProcessor to BlockParser. """
-        md.parser.blockprocessors.register(DefListIndentProcessor(md.parser), 'defindent', 85)
-        md.parser.blockprocessors.register(DefListProcessor(md.parser), 'deflist', 25)
+        md.parser.blockprocessors.add('defindent',
+                                      DefListIndentProcessor(md.parser),
+                                      '>indent')
+        md.parser.blockprocessors.add('deflist',
+                                      DefListProcessor(md.parser),
+                                      '>ulist')
 
 
-def makeExtension(**kwargs):  # pragma: no cover
-    return DefListExtension(**kwargs)
+def makeExtension(*args, **kwargs):
+    return DefListExtension(*args, **kwargs)

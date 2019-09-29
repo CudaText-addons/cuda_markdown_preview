@@ -4,7 +4,7 @@ Meta Data Extension for Python-Markdown
 
 This extension adds Meta Data handling to markdown.
 
-See <https://Python-Markdown.github.io/extensions/meta_data>
+See <https://pythonhosted.org/Markdown/extensions/meta_data.html>
 for documentation.
 
 Original code Copyright 2007-2008 [Waylan Limberg](http://achinghead.com).
@@ -34,14 +34,11 @@ END_RE = re.compile(r'^(-{3}|\.{3})(\s.*)?')
 class MetaExtension (Extension):
     """ Meta-Data extension for Python-Markdown. """
 
-    def extendMarkdown(self, md):
+    def extendMarkdown(self, md, md_globals):
         """ Add MetaPreprocessor to Markdown instance. """
-        md.registerExtension(self)
-        self.md = md
-        md.preprocessors.register(MetaPreprocessor(md), 'meta', 27)
-
-    def reset(self):
-        self.md.Meta = {}
+        md.preprocessors.add("meta",
+                             MetaPreprocessor(md),
+                             ">normalize_whitespace")
 
 
 class MetaPreprocessor(Preprocessor):
@@ -73,9 +70,9 @@ class MetaPreprocessor(Preprocessor):
                 else:
                     lines.insert(0, line)
                     break  # no meta data - done
-        self.md.Meta = meta
+        self.markdown.Meta = meta
         return lines
 
 
-def makeExtension(**kwargs):  # pragma: no cover
-    return MetaExtension(**kwargs)
+def makeExtension(*args, **kwargs):
+    return MetaExtension(*args, **kwargs)

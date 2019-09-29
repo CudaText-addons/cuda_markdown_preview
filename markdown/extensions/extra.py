@@ -20,7 +20,7 @@ under a differant name. You could also edit the `extensions` global
 variable defined below, but be aware that such changes may be lost
 when you upgrade to any future version of Python-Markdown.
 
-See <https://Python-Markdown.github.io/extensions/extra>
+See <https://pythonhosted.org/Markdown/extensions/extra.html>
 for documentation.
 
 Copyright The Python Markdown Project
@@ -37,37 +37,40 @@ from .. import util
 import re
 
 extensions = [
-    'fenced_code',
-    'footnotes',
-    'attr_list',
-    'def_list',
-    'tables',
-    'abbr'
+    'markdown.extensions.smart_strong',
+    'markdown.extensions.fenced_code',
+    'markdown.extensions.footnotes',
+    'markdown.extensions.attr_list',
+    'markdown.extensions.def_list',
+    'markdown.extensions.tables',
+    'markdown.extensions.abbr'
 ]
 
 
 class ExtraExtension(Extension):
     """ Add various extensions to Markdown class."""
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         """ config is a dumb holder which gets passed to actual ext later. """
-        self.config = kwargs
+        self.config = kwargs.pop('configs', {})
+        self.config.update(kwargs)
 
-    def extendMarkdown(self, md):
+    def extendMarkdown(self, md, md_globals):
         """ Register extension instances. """
         md.registerExtensions(extensions, self.config)
-        # Turn on processing of markdown text within raw html
-        md.preprocessors['html_block'].markdown_in_raw = True
-        md.parser.blockprocessors.register(
-            MarkdownInHtmlProcessor(md.parser), 'markdown_block', 105
-        )
-        md.parser.blockprocessors.tag_counter = -1
-        md.parser.blockprocessors.contain_span_tags = re.compile(
-            r'^(p|h[1-6]|li|dd|dt|td|th|legend|address)$', re.IGNORECASE)
+        if not md.safeMode:
+            # Turn on processing of markdown text within raw html
+            md.preprocessors['html_block'].markdown_in_raw = True
+            md.parser.blockprocessors.add('markdown_block',
+                                          MarkdownInHtmlProcessor(md.parser),
+                                          '_begin')
+            md.parser.blockprocessors.tag_counter = -1
+            md.parser.blockprocessors.contain_span_tags = re.compile(
+                r'^(p|h[1-6]|li|dd|dt|td|th|legend|address)$', re.IGNORECASE)
 
 
-def makeExtension(**kwargs):  # pragma: no cover
-    return ExtraExtension(**kwargs)
+def makeExtension(*args, **kwargs):
+    return ExtraExtension(*args, **kwargs)
 
 
 class MarkdownInHtmlProcessor(BlockProcessor):
@@ -95,7 +98,7 @@ class MarkdownInHtmlProcessor(BlockProcessor):
                  block[nest_index[-1][1]:], True)                      # nest
 
     def run(self, parent, blocks, tail=None, nest=False):
-        self._tag_data = self.parser.md.htmlStash.tag_data
+        self._tag_data = self.parser.markdown.htmlStash.tag_data
 
         self.parser.blockprocessors.tag_counter += 1
         tag = self._tag_data[self.parser.blockprocessors.tag_counter]

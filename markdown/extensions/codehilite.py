@@ -4,7 +4,7 @@ CodeHilite Extension for Python-Markdown
 
 Adds code/syntax highlighting to standard Python-Markdown code blocks.
 
-See <https://Python-Markdown.github.io/extensions/code_hilite>
+See <https://pythonhosted.org/Markdown/extensions/code_hilite.html>
 for documentation.
 
 Original code Copyright 2006-2008 [Waylan Limberg](http://achinghead.com/).
@@ -166,7 +166,7 @@ class CodeHilite(object):
         c = re.compile(r'''
             (?:(?:^::+)|(?P<shebang>^[#]!)) # Shebang or 2 or more colons
             (?P<path>(?:/\w+)*[/ ])?        # Zero or 1 path
-            (?P<lang>[\w#.+-]*)             # The language
+            (?P<lang>[\w+-]*)               # The language
             \s*                             # Arbitrary whitespace
             # Optional highlight lines, single- or double-quote-delimited
             (hl_lines=(?P<quot>"|')(?P<hl_lines>.*?)(?P=quot))?
@@ -200,29 +200,23 @@ class CodeHilite(object):
 class HiliteTreeprocessor(Treeprocessor):
     """ Hilight source code in code blocks. """
 
-    def code_unescape(self, text):
-        """Unescape code."""
-        text = text.replace("&amp;", "&")
-        text = text.replace("&lt;", "<")
-        text = text.replace("&gt;", ">")
-        return text
-
     def run(self, root):
         """ Find code blocks and store in htmlStash. """
         blocks = root.iter('pre')
         for block in blocks:
             if len(block) == 1 and block[0].tag == 'code':
                 code = CodeHilite(
-                    self.code_unescape(block[0].text),
+                    block[0].text,
                     linenums=self.config['linenums'],
                     guess_lang=self.config['guess_lang'],
                     css_class=self.config['css_class'],
                     style=self.config['pygments_style'],
                     noclasses=self.config['noclasses'],
-                    tab_length=self.md.tab_length,
+                    tab_length=self.markdown.tab_length,
                     use_pygments=self.config['use_pygments']
                 )
-                placeholder = self.md.htmlStash.store(code.hilite())
+                placeholder = self.markdown.htmlStash.store(code.hilite(),
+                                                            safe=True)
                 # Clear codeblock in etree instance
                 block.clear()
                 # Change to p element which will later
@@ -234,7 +228,7 @@ class HiliteTreeprocessor(Treeprocessor):
 class CodeHiliteExtension(Extension):
     """ Add source code hilighting to markdown codeblocks. """
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         # define default configs
         self.config = {
             'linenums': [None,
@@ -256,16 +250,16 @@ class CodeHiliteExtension(Extension):
                              'Default: True']
             }
 
-        super(CodeHiliteExtension, self).__init__(**kwargs)
+        super(CodeHiliteExtension, self).__init__(*args, **kwargs)
 
-    def extendMarkdown(self, md):
+    def extendMarkdown(self, md, md_globals):
         """ Add HilitePostprocessor to Markdown instance. """
         hiliter = HiliteTreeprocessor(md)
         hiliter.config = self.getConfigs()
-        md.treeprocessors.register(hiliter, 'hilite', 30)
+        md.treeprocessors.add("hilite", hiliter, "<inline")
 
         md.registerExtension(self)
 
 
-def makeExtension(**kwargs):  # pragma: no cover
-    return CodeHiliteExtension(**kwargs)
+def makeExtension(*args, **kwargs):
+    return CodeHiliteExtension(*args, **kwargs)
