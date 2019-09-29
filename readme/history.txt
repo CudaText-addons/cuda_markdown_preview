@@ -1,11 +1,11 @@
 
 2019.09.29
 + updated all libs
-* disabled GitHub Flavored extensions, because libs (gfm, mdx_gfm) are incompatible with newer Markdown lib
+* disabled GitHub Flavored Markdown, because libs (gfm, mdx_gfm) are incompatible with newer Markdown lib
 
 2016.04.16
-+ supports Github flavored Markdown
-* changed name of opt-file
++ support Github Flavored Markdown
+* changed name of config file
 
 2015.10
 initial version
