@@ -4,6 +4,7 @@ desc=Previews Markdown text as HTML page in browser
 type=cudatext-plugin
 subdir=cuda_markdown_preview
 homepage=https://github.com/CudaText-addons/cuda_markdown_preview
+api=1.0.299
 
 [item1]
 section=commands
