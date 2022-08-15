@@ -1,4 +1,3 @@
-# coding: utf-8
 # Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -40,28 +39,27 @@ Typical usage
 
 """
 
-from __future__ import unicode_literals
-
 import re
 import markdown
 
-
-URL_RE = (r'(?i)\b((?:(?:ftp|https?)://|www\d{0,3}[.])(?:[^\s()<>]+|'
-          r'\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()'
-          r'<>]+\)))*\)|[^\s`!()\[\]{};:' + r"'" + r'".,<>?«»“”‘’]))')
-PROTOCOL_RE = re.compile(r'^(ftp|https?)://', re.IGNORECASE)
+URL_RE = (
+    r"(?i)\b((?:(?:ftp|https?)://|www\d{0,3}[.])(?:[^\s()<>]+|"
+    r"\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()"
+    r"<>]+\)))*\)|[^\s`!()\[\]{};:" + r"'" + r'".,<>?«»“”‘’]))'
+)
+PROTOCOL_RE = re.compile(r"^(ftp|https?)://", re.IGNORECASE)
 
 
 # We can't re-use the built-in AutolinkPattern because we need to add protocols
 # to links without them.
 class AutolinkPattern(markdown.inlinepatterns.Pattern):
     def handleMatch(self, m):
-        el = markdown.util.etree.Element('a')
+        el = markdown.util.etree.Element("a")
 
         href = m.group(2)
         if not PROTOCOL_RE.match(href):
-            href = 'http://%s' % href
-        el.set('href', self.unescape(href))
+            href = "http://%s" % href
+        el.set("href", self.unescape(href))
 
         el.text = markdown.util.AtomicString(m.group(2))
         return el
@@ -72,6 +70,5 @@ class AutolinkExtension(markdown.Extension):
     An extension that turns URLs into links.
     """
 
-    def extendMarkdown(self, md, md_globals):
-        autolink = AutolinkPattern(URL_RE, md)
-        md.inlinePatterns.add('gfm-autolink', autolink, '_end')
+    def extendMarkdown(self, md):
+        md.inlinePatterns.register(AutolinkPattern(URL_RE, md), "gfm-autolink", 100)

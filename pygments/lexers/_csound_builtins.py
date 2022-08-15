@@ -1,54 +1,85 @@
-# -*- coding: utf-8 -*-
 """
     pygments.lexers._csound_builtins
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    :copyright: Copyright 2006-2019 by the Pygments team, see AUTHORS.
+    :copyright: Copyright 2006-2022 by the Pygments team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 
-# Opcodes in Csound 6.12.0 at commit 6ca322bd31f1ca907c008616b40a5f237ff449db using
-#   python -c "
-#   import re, subprocess
-#   output = subprocess.Popen(['csound', '--list-opcodes0'], stderr=subprocess.PIPE).communicate()[1]
-#   opcodes = output[re.search(r'^$', output, re.M).end():re.search(r'^\d+ opcodes$', output, re.M).start()].split()
-#   output = subprocess.Popen(['csound', '--list-opcodes2'], stderr=subprocess.PIPE).communicate()[1]
-#   all_opcodes = output[re.search(r'^$', output, re.M).end():re.search(r'^\d+ opcodes$', output, re.M).start()].split()
+REMOVED_OPCODES = set('''
+OSCsendA
+beadsynt
+beosc
+buchla
+getrowlin
+lua_exec
+lua_iaopcall
+lua_iaopcall_off
+lua_ikopcall
+lua_ikopcall_off
+lua_iopcall
+lua_iopcall_off
+lua_opdef
+mp3scal_check
+mp3scal_load
+mp3scal_load2
+mp3scal_play
+mp3scal_play2
+pvsgendy
+socksend_k
+signalflowgraph
+sumTableFilter
+systime
+tabrowlin
+vbap1move
+'''.split())
+
+# Opcodes in Csound 6.17.0 using:
+#   python3 -c "
+#   import re
+#   from subprocess import Popen, PIPE
+#   output = Popen(['csound', '--list-opcodes0'], stderr=PIPE, text=True).communicate()[1]
+#   opcodes = output[re.search(r'^\$', output, re.M).end() : re.search(r'^\d+ opcodes\$', output, re.M).start()].split()
+#   output = Popen(['csound', '--list-opcodes2'], stderr=PIPE, text=True).communicate()[1]
+#   all_opcodes = output[re.search(r'^\$', output, re.M).end() : re.search(r'^\d+ opcodes\$', output, re.M).start()].split()
 #   deprecated_opcodes = [opcode for opcode in all_opcodes if opcode not in opcodes]
-#   print '''OPCODES = set(\'''
-#   {}
+#   # Remove opcodes that csound.py treats as keywords.
+#   keyword_opcodes = [
+#       'cggoto',   # https://csound.com/docs/manual/cggoto.html
+#       'cigoto',   # https://csound.com/docs/manual/cigoto.html
+#       'cingoto',  # (undocumented)
+#       'ckgoto',   # https://csound.com/docs/manual/ckgoto.html
+#       'cngoto',   # https://csound.com/docs/manual/cngoto.html
+#       'cnkgoto',  # (undocumented)
+#       'endin',    # https://csound.com/docs/manual/endin.html
+#       'endop',    # https://csound.com/docs/manual/endop.html
+#       'goto',     # https://csound.com/docs/manual/goto.html
+#       'igoto',    # https://csound.com/docs/manual/igoto.html
+#       'instr',    # https://csound.com/docs/manual/instr.html
+#       'kgoto',    # https://csound.com/docs/manual/kgoto.html
+#       'loop_ge',  # https://csound.com/docs/manual/loop_ge.html
+#       'loop_gt',  # https://csound.com/docs/manual/loop_gt.html
+#       'loop_le',  # https://csound.com/docs/manual/loop_le.html
+#       'loop_lt',  # https://csound.com/docs/manual/loop_lt.html
+#       'opcode',   # https://csound.com/docs/manual/opcode.html
+#       'reinit',   # https://csound.com/docs/manual/reinit.html
+#       'return',   # https://csound.com/docs/manual/return.html
+#       'rireturn', # https://csound.com/docs/manual/rireturn.html
+#       'rigoto',   # https://csound.com/docs/manual/rigoto.html
+#       'tigoto',   # https://csound.com/docs/manual/tigoto.html
+#       'timout'    # https://csound.com/docs/manual/timout.html
+#   ]
+#   opcodes = [opcode for opcode in opcodes if opcode not in keyword_opcodes]
+#   newline = '\n'
+#   print(f'''OPCODES = set(\'''
+#   {newline.join(opcodes)}
 #   \'''.split())
 #
 #   DEPRECATED_OPCODES = set(\'''
-#   {}
+#   {newline.join(deprecated_opcodes)}
 #   \'''.split())
-#   '''.format('\n'.join(opcodes), '\n'.join(deprecated_opcodes))
+#   ''')
 #   "
-# except for
-#   cggoto   csound.com/docs/manual/cggoto.html
-#   cigoto   csound.com/docs/manual/cigoto.html
-#   cingoto  (undocumented)
-#   ckgoto   csound.com/docs/manual/ckgoto.html
-#   cngoto   csound.com/docs/manual/cngoto.html
-#   cnkgoto  (undocumented)
-#   endin    csound.com/docs/manual/endin.html
-#   endop    csound.com/docs/manual/endop.html
-#   goto     csound.com/docs/manual/goto.html
-#   igoto    csound.com/docs/manual/igoto.html
-#   instr    csound.com/docs/manual/instr.html
-#   kgoto    csound.com/docs/manual/kgoto.html
-#   loop_ge  csound.com/docs/manual/loop_ge.html
-#   loop_gt  csound.com/docs/manual/loop_gt.html
-#   loop_le  csound.com/docs/manual/loop_le.html
-#   loop_lt  csound.com/docs/manual/loop_lt.html
-#   opcode   csound.com/docs/manual/opcode.html
-#   reinit   csound.com/docs/manual/reinit.html
-#   return   csound.com/docs/manual/return.html
-#   rireturn csound.com/docs/manual/rireturn.html
-#   rigoto   csound.com/docs/manual/rigoto.html
-#   tigoto   csound.com/docs/manual/tigoto.html
-#   timout   csound.com/docs/manual/timout.html
-# which are treated as keywords in csound.py.
 
 OPCODES = set('''
 ATSadd
@@ -169,8 +200,8 @@ STKBowed
 STKBrass
 STKClarinet
 STKDrummer
-STKFlute
 STKFMVoices
+STKFlute
 STKHevyMetl
 STKMandolin
 STKModalBar
@@ -196,17 +227,25 @@ adsyn
 adsynt
 adsynt2
 aftouch
+allpole
 alpass
 alwayson
 ampdb
 ampdbfs
 ampmidi
+ampmidicurve
 ampmidid
+apoleparams
+arduinoRead
+arduinoReadF
+arduinoStart
+arduinoStop
 areson
 aresonk
 atone
 atonek
 atonex
+autocorr
 babo
 balance
 balance2
@@ -214,16 +253,16 @@ bamboo
 barmodel
 bbcutm
 bbcuts
-beadsynt
-beosc
 betarand
 bexprnd
 bformdec1
+bformdec2
 bformenc1
 binit
 biquad
 biquada
 birnd
+bob
 bpf
 bpfcos
 bqrez
@@ -261,11 +300,19 @@ chn_k
 chnclear
 chnexport
 chnget
+chngeta
+chngeti
+chngetk
 chngetks
+chngets
 chnmix
 chnparams
 chnset
+chnseta
+chnseti
+chnsetk
 chnsetks
+chnsets
 chuap
 clear
 clfilt
@@ -274,6 +321,13 @@ clockoff
 clockon
 cmp
 cmplxprod
+cntCreate
+cntCycles
+cntDelete
+cntDelete_i
+cntRead
+cntReset
+cntState
 comb
 combinv
 compilecsd
@@ -293,6 +347,8 @@ cosinv
 cosseg
 cossegb
 cossegr
+count
+count_i
 cps2pch
 cpsmidi
 cpsmidib
@@ -318,6 +374,11 @@ ctrl14
 ctrl21
 ctrl7
 ctrlinit
+ctrlpreset
+ctrlprint
+ctrlprintpresets
+ctrlsave
+ctrlselect
 cuserrnd
 dam
 date
@@ -418,6 +479,17 @@ flashtxt
 flooper
 flooper2
 floor
+fluidAllOut
+fluidCCi
+fluidCCk
+fluidControl
+fluidEngine
+fluidInfo
+fluidLoad
+fluidNote
+fluidOut
+fluidProgramSelect
+fluidSetInterpMethod
 fmanal
 fmax
 fmb3
@@ -452,6 +524,7 @@ ftaudio
 ftchnls
 ftconv
 ftcps
+ftexists
 ftfree
 ftgen
 ftgenonce
@@ -468,7 +541,9 @@ ftresizei
 ftsamplebank
 ftsave
 ftsavek
+ftset
 ftslice
+ftslicei
 ftsr
 gain
 gainslider
@@ -485,13 +560,14 @@ getcfg
 getcol
 getftargs
 getrow
-getrowlin
 getseed
 gogobel
 grain
 grain2
 grain3
 granule
+gtadsr
+gtf
 guiro
 harmon
 harmon2
@@ -599,6 +675,10 @@ la_i_multiply_mc
 la_i_multiply_mr
 la_i_multiply_vc
 la_i_multiply_vr
+la_i_norm1_mc
+la_i_norm1_mr
+la_i_norm1_vc
+la_i_norm1_vr
 la_i_norm_euclid_mc
 la_i_norm_euclid_mr
 la_i_norm_euclid_vc
@@ -609,10 +689,6 @@ la_i_norm_inf_vc
 la_i_norm_inf_vr
 la_i_norm_max_mc
 la_i_norm_max_mr
-la_i_norm1_mc
-la_i_norm1_mr
-la_i_norm1_vc
-la_i_norm1_vr
 la_i_print_mc
 la_i_print_mr
 la_i_print_vc
@@ -697,6 +773,10 @@ la_k_multiply_mc
 la_k_multiply_mr
 la_k_multiply_vc
 la_k_multiply_vr
+la_k_norm1_mc
+la_k_norm1_mr
+la_k_norm1_vc
+la_k_norm1_vr
 la_k_norm_euclid_mc
 la_k_norm_euclid_mr
 la_k_norm_euclid_vc
@@ -707,10 +787,6 @@ la_k_norm_inf_vc
 la_k_norm_inf_vr
 la_k_norm_max_mc
 la_k_norm_max_mr
-la_k_norm1_mc
-la_k_norm1_mr
-la_k_norm1_vc
-la_k_norm1_vr
 la_k_qr_eigen_mc
 la_k_qr_eigen_mr
 la_k_qr_factor_mc
@@ -732,8 +808,12 @@ la_k_upper_solve_mc
 la_k_upper_solve_mr
 la_k_vc_set
 la_k_vr_set
+lag
+lagud
+lastcycle
 lenarray
 lfo
+lfsr
 limit
 limit1
 lincos
@@ -777,6 +857,8 @@ loscilx
 lowpass2
 lowres
 lowresx
+lpcanal
+lpcfilter
 lpf18
 lpform
 lpfreson
@@ -792,14 +874,7 @@ lpreson
 lpshold
 lpsholdp
 lpslot
-lua_exec
-lua_iaopcall
-lua_iaopcall_off
-lua_ikopcall
-lua_ikopcall_off
-lua_iopcall
-lua_iopcall_off
-lua_opdef
+lufs
 mac
 maca
 madsr
@@ -822,6 +897,8 @@ mdelay
 median
 mediank
 metro
+metro2
+metrobpm
 mfb
 midglobal
 midiarp
@@ -870,10 +947,12 @@ mp3bitrate
 mp3in
 mp3len
 mp3nchnls
+mp3out
 mp3scal
 mp3sr
 mpulse
 mrtmsg
+ms2st
 mtof
 mton
 multitap
@@ -883,6 +962,7 @@ mvclpf1
 mvclpf2
 mvclpf3
 mvclpf4
+mvmfilter
 mxadsr
 nchnls_hw
 nestedap
@@ -900,6 +980,8 @@ nrpn
 nsamp
 nstance
 nstrnum
+nstrstr
+ntof
 ntom
 ntrpol
 nxtpow2
@@ -924,6 +1006,7 @@ oscils
 oscilx
 out
 out32
+outall
 outc
 outch
 outh
@@ -1024,13 +1107,11 @@ printk
 printk2
 printks
 printks2
+println
 prints
+printsk
 product
 pset
-ptable
-ptable3
-ptablei
-ptableiw
 ptablew
 ptrack
 puts
@@ -1047,6 +1128,7 @@ pvsanal
 pvsarp
 pvsbandp
 pvsbandr
+pvsbandwidth
 pvsbin
 pvsblur
 pvsbuffer
@@ -1055,6 +1137,7 @@ pvsbufread2
 pvscale
 pvscent
 pvsceps
+pvscfs
 pvscross
 pvsdemix
 pvsdiskin
@@ -1068,12 +1151,14 @@ pvsftr
 pvsftw
 pvsfwrite
 pvsgain
+pvsgendy
 pvshift
 pvsifd
 pvsin
 pvsinfo
 pvsinit
 pvslock
+pvslpc
 pvsmaska
 pvsmix
 pvsmooth
@@ -1175,6 +1260,7 @@ qinf
 qnan
 r2c
 rand
+randc
 randh
 randi
 random
@@ -1198,6 +1284,7 @@ remove
 repluck
 reshapearray
 reson
+resonbnk
 resonk
 resonr
 resonx
@@ -1215,6 +1302,7 @@ rifft
 rms
 rnd
 rnd31
+rndseed
 round
 rspline
 rtclock
@@ -1227,14 +1315,19 @@ sc_lagud
 sc_phasor
 sc_trig
 scale
+scale2
 scalearray
 scanhammer
+scanmap
 scans
+scansmap
 scantable
 scanu
+scanu2
 schedkwhen
 schedkwhennamed
 schedule
+schedulek
 schedwhen
 scoreline
 scoreline_i
@@ -1246,6 +1339,7 @@ sense
 sensekey
 seqtime
 seqtime2
+sequ
 serialBegin
 serialEnd
 serialFlush
@@ -1280,6 +1374,7 @@ sin
 sinh
 sininv
 sinsyn
+skf
 sleighbells
 slicearray
 slicearray_i
@@ -1315,13 +1410,16 @@ spat3d
 spat3di
 spat3dt
 spdist
+spf
 splitrig
 sprintf
 sprintfk
 spsend
 sqrt
 squinewave
+st2ms
 statevar
+sterrain
 stix
 strcat
 strcatk
@@ -1337,6 +1435,7 @@ strfromurl
 strget
 strindex
 strindexk
+string2array
 strlen
 strlenk
 strlower
@@ -1344,6 +1443,7 @@ strlowerk
 strrindex
 strrindexk
 strset
+strstrip
 strsub
 strsubk
 strtod
@@ -1358,6 +1458,7 @@ subinstrinit
 sum
 sumarray
 svfilter
+svn
 syncgrain
 syncloop
 syncphasor
@@ -1380,7 +1481,6 @@ tableicopy
 tableigpw
 tableikt
 tableimix
-tableiw
 tablekt
 tablemix
 tableng
@@ -1399,7 +1499,6 @@ tabmorphak
 tabmorphi
 tabplay
 tabrec
-tabrowlin
 tabsum
 tabw
 tabw_i
@@ -1431,7 +1530,13 @@ transegr
 trcross
 trfilter
 trhighest
+trigExpseg
+trigLinseg
+trigexpseg
 trigger
+trighold
+triglinseg
+trigphasor
 trigseq
 trim
 trim_i
@@ -1443,6 +1548,8 @@ trshift
 trsplit
 turnoff
 turnoff2
+turnoff2_i
+turnoff3
 turnon
 tvconv
 unirand
@@ -1466,6 +1573,7 @@ vbapmove
 vbapz
 vbapzmove
 vcella
+vclpf
 vco
 vco2
 vco2ft
@@ -1514,6 +1622,7 @@ vpow
 vpow_i
 vpowv
 vpowv_i
+vps
 vpvoc
 vrandh
 vrandi
@@ -1553,13 +1662,10 @@ window
 wrap
 writescratch
 wterrain
+wterrain2
 xadsr
 xin
 xout
-xscanmap
-xscans
-xscansmap
-xscanu
 xtratim
 xyscale
 zacl
@@ -1598,6 +1704,10 @@ maxtab
 mintab
 pop
 pop_f
+ptable
+ptable3
+ptablei
+ptableiw
 push
 push_f
 scalet
@@ -1616,6 +1726,7 @@ spectrum
 stack
 sumtab
 tabgen
+tableiw
 tabmap
 tabmap_i
 tabslice
@@ -1656,5 +1767,9 @@ vbap4
 vbap4move
 vbap8
 vbap8move
+xscanmap
+xscans
+xscansmap
+xscanu
 xyin
 '''.split())
