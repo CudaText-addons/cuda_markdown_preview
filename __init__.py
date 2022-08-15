@@ -66,6 +66,8 @@ class Command:
 
         if os.path.isfile(fn_temp):
             if not only_reload:
+                if self.live:
+                    app_proc(PROC_SET_EVENTS, 'cuda_markdown_preview;on_exit,on_change_slow;Markdown;') 
                 msg_status('Opening HTML preview...')
                 webbrowser.open_new_tab(fn_temp)
         else:
@@ -73,7 +75,7 @@ class Command:
 
     def config_live(self):
 
-        msg = 'Live update is: %s.\nEnable live update (auto-reload of HTML page + converting of Markdown after each editing)?\n\nNote: this works only in Chromium-based browsers.'\
+        msg = 'Live update is: %s.\nEnable live update (auto-reload of HTML page + converting of Markdown after each editing)?'\
             %('on' if self.live else 'off')
         opt = msg_box(msg, MB_YESNO+MB_ICONQUESTION) == ID_YES
         if self.live != opt:

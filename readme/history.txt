@@ -1,13 +1,15 @@
 
 2022.08.15
-+ updated all Python libs, added more libs which are required
++ add: seems, Firefox was improved, it now also supports 'live' mode
++ add: don't always react to 'on_change_slow', do it only after call of plugin's command
++ add: updated all Python libs, added more libs which are required
 
 2019.09.29
-+ added command "Configure live update": it enables browser to auto-reload HTML each N seconds, and editor updates HTML file on each editing
-+ plugin deletes its temp files on CudaText exit
++ add: added command "Configure live update": it enables browser to auto-reload HTML each N seconds, and editor updates HTML file on each editing
++ add: plugin deletes its temp files on CudaText exit
 
 2016.04.16
-+ support Github Flavored Markdown
++ add: support Github Flavored Markdown
 * changed name of config file
 
 2015.10
