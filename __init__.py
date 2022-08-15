@@ -55,16 +55,21 @@ class Command:
         if not fn_ed:
             msg_status('Cannot preview untitled document')
             return
-        fn_temp = os.path.join(dir_temp, os.path.basename(fn_ed+'.html'))
 
-        with open(fn_temp, 'w') as f:
+        fn_temp = os.path.join(dir_temp,
+            os.path.basename(os.path.dirname(fn_ed))+'_'+
+            os.path.basename(fn_ed)+'.html')
+        temp_existed = os.path.isfile(fn_temp)
+
+        with open(fn_temp, 'w', encoding='utf-8') as f:
             f.write(text)
 
         if os.path.isfile(fn_temp):
-            msg_status('Opening HTML preview...')
-            webbrowser.open_new_tab(fn_temp)
+            if not self.live or not temp_existed:
+                msg_status('Opening HTML preview...')
+                webbrowser.open_new_tab(fn_temp)
         else:
-            msg_status('Cannot convert document to HTML')
+            msg_status('Cannot convert Markdown to HTML')
 
     def config_live(self):
 
