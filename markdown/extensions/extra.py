@@ -32,13 +32,13 @@ License: [BSD](https://opensource.org/licenses/bsd-license.php)
 from . import Extension
 
 extensions = [
-    'fenced_code',
-    'footnotes',
-    'attr_list',
-    'def_list',
-    'tables',
-    'abbr',
-    'md_in_html'
+    'markdown.extensions.fenced_code',
+    'markdown.extensions.footnotes',
+    'markdown.extensions.attr_list',
+    'markdown.extensions.def_list',
+    'markdown.extensions.tables',
+    'markdown.extensions.abbr',
+    'markdown.extensions.md_in_html'
 ]
 
 
