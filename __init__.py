@@ -42,7 +42,7 @@ class Command:
                 os.remove(os.path.join(dir_temp, f))
         os.rmdir(dir_temp)
 
-    def run(self):
+    def run(self, only_reload=False):
 
         text = ed.get_text_all()
         if not text: return
@@ -65,7 +65,7 @@ class Command:
             f.write(text)
 
         if os.path.isfile(fn_temp):
-            if not self.live or not temp_existed:
+            if not only_reload:
                 msg_status('Opening HTML preview...')
                 webbrowser.open_new_tab(fn_temp)
         else:
@@ -84,4 +84,4 @@ class Command:
     def on_change_slow(self, ed_self):
 
         if self.live:
-            self.run()
+            self.run(True)
