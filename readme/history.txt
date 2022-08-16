@@ -1,5 +1,6 @@
 
-2022.08.15
+2022.08.16
++ add: support for translation
 + add: seems, Firefox was improved, it now also supports 'live' mode
 + add: don't always react to 'on_change_slow', do it only after call of plugin's command
 + add: updated all Python libs, added more libs which are required

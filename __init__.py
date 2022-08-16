@@ -4,6 +4,9 @@ import webbrowser
 import tempfile
 from cudatext import *
 
+from cudax_lib import get_translation
+_ = get_translation(__file__)  # I18N
+
 sys.path.insert(0, os.path.dirname(__file__)) # insert, so OS's module won't be used
 import markdown
 from .cuda_markdown_options import ext
@@ -53,7 +56,7 @@ class Command:
 
         fn_ed = ed.get_filename()
         if not fn_ed:
-            msg_status('Cannot preview untitled document')
+            msg_status(_('Cannot preview untitled document'))
             return
 
         fn_temp = os.path.join(dir_temp,
@@ -68,20 +71,20 @@ class Command:
             if not only_reload:
                 if self.live:
                     app_proc(PROC_SET_EVENTS, 'cuda_markdown_preview;on_exit,on_change_slow;Markdown;') 
-                msg_status('Opening HTML preview...')
+                msg_status(_('Opening HTML preview...'))
                 webbrowser.open_new_tab(fn_temp)
         else:
-            msg_status('Cannot convert Markdown to HTML')
+            msg_status(_('Cannot convert Markdown to HTML'))
 
     def config_live(self):
 
-        msg = 'Live update is: %s.\nEnable live update (auto-reload of HTML page + converting of Markdown after each editing)?'\
-            %('on' if self.live else 'off')
+        msg = _('Live update is: %s.\nEnable live update (auto-reload of HTML page + converting of Markdown after each editing)?')\
+            %(_('on') if self.live else _('off'))
         opt = msg_box(msg, MB_YESNO+MB_ICONQUESTION) == ID_YES
         if self.live != opt:
             self.live = opt
             ini_write(fn_config, section, 'autoreload', '1' if opt else '0')
-            msg_box('Restart CudaText to apply this option.', MB_OK)
+            msg_box(_('Restart CudaText to apply this option.'), MB_OK)
 
     def on_change_slow(self, ed_self):
 
