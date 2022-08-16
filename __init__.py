@@ -31,6 +31,7 @@ LIVE_SCRIPT = """
 class Command:
     live = False
     live_pause = 10
+    live_files = []
 
     def __init__(self):
 
@@ -58,9 +59,10 @@ class Command:
         if not fn_ed:
             msg_status(_('Cannot preview untitled document'))
             return
+        self.live_files.append(fn_ed)
 
         fn_temp = os.path.join(dir_temp,
-            os.path.basename(os.path.dirname(fn_ed))+'_'+
+            os.path.basename(os.path.dirname(fn_ed))+'@'+
             os.path.basename(fn_ed)+'.html')
         temp_existed = os.path.isfile(fn_temp)
 
@@ -89,4 +91,6 @@ class Command:
     def on_change_slow(self, ed_self):
 
         if self.live:
-            self.run(True)
+            fn = ed_self.get_filename()
+            if fn and (fn in self.live_files):
+                self.run(True)
