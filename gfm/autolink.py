@@ -41,7 +41,6 @@ Typical usage
 
 import re
 import markdown
-import xml.etree.ElementTree as etree
 
 URL_RE = (
     r"(?i)\b((?:(?:ftp|https?)://|www\d{0,3}[.])(?:[^\s()<>]+|"
@@ -55,7 +54,7 @@ PROTOCOL_RE = re.compile(r"^(ftp|https?)://", re.IGNORECASE)
 # to links without them.
 class AutolinkPattern(markdown.inlinepatterns.Pattern):
     def handleMatch(self, m):
-        el = etree.Element("a")
+        el = markdown.util.etree.Element("a")
 
         href = m.group(2)
         if not PROTOCOL_RE.match(href):
