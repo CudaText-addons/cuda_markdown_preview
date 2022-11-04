@@ -1,6 +1,5 @@
 import sys
 import os
-import webbrowser
 import tempfile
 from cudatext import *
 
@@ -26,6 +25,17 @@ LIVE_SCRIPT = """
             }
 </script>
 """
+
+def safe_open_url(url):
+    '''
+    On Windows 10, app crashes when webbrowser.open* is called with running LSP server.
+    '''
+    if os.name=='nt':
+        import subprocess
+        subprocess.Popen(['start', url], shell=True)
+    else:
+        import webbrowser
+        webbrowser.open_new_tab(url)
 
 
 class Command:
@@ -74,7 +84,7 @@ class Command:
                 if self.live:
                     app_proc(PROC_SET_EVENTS, 'cuda_markdown_preview;on_exit,on_change_slow;Markdown;') 
                 msg_status(_('Opening HTML preview...'))
-                webbrowser.open_new_tab(fn_temp)
+                safe_open_url('file://'+fn_temp)
         else:
             msg_status(_('Cannot convert Markdown to HTML'))
 
