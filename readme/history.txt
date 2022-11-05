@@ -1,3 +1,7 @@
+2022.11.05
+- fix: avoid crash with LSP server running
+- fix: avoid converting line-breaks to <br> tags by using PartialGithubFlavoredMarkdownExtension
+
 2022.10.31
 - fix: error importing 'etree'
 
