@@ -1,3 +1,6 @@
+2023.05.04
+- fix: plugin gave error on Windows on Python 3.8 (fix by @fogcell)
+
 2022.12.09
 - fix: avoid crash under Python 3.11
 
