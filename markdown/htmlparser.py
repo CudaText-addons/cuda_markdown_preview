@@ -27,8 +27,9 @@ import sys
 # Import a copy of the html.parser lib as `htmlparser` so we can monkeypatch it.
 # Users can still do `from html import parser` and get the default behavior.
 spec = importlib.util.find_spec('html.parser')
-htmlparser = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(htmlparser)
+#htmlparser = importlib.util.module_from_spec(spec)
+#spec.loader.exec_module(htmlparser) 
+htmlparser = spec.loader.load_module('html.parser')
 sys.modules['htmlparser'] = htmlparser
 
 # Monkeypatch HTMLParser to only accept `?>` to close Processing Instructions.
