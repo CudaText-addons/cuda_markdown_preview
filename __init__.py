@@ -7,6 +7,8 @@ from cudax_lib import get_translation
 _ = get_translation(__file__)  # I18N
 
 sys.path.insert(0, os.path.dirname(__file__)) # insert, so OS's module won't be used
+sys.path.append(os.path.join(os.path.dirname(__file__), 'markdown', 'extensions'))
+
 import markdown
 from .cuda_markdown_options import ext
 md = markdown.Markdown(extensions=ext)
