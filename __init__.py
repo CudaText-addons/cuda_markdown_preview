@@ -13,6 +13,8 @@ import markdown
 from .cuda_markdown_options import ext
 md = markdown.Markdown(extensions=ext)
 
+os.environ['TMPDIR'] = os.path.expanduser('~/tmp') # avoid using /tmp because Firefox cannot open HTML from there
+
 dir_temp = os.path.join(tempfile.gettempdir(), 'cuda_markdown_preview')
 fn_config = os.path.join(app_path(APP_DIR_SETTINGS), 'plugins.ini')
 section = 'markdown_preview'
