@@ -19,12 +19,12 @@ for details.
 
 from __future__ import annotations
 
-from . import Extension
-from ..blockprocessors import BlockProcessor
-from ..inlinepatterns import InlineProcessor
-from ..treeprocessors import Treeprocessor
-from ..postprocessors import Postprocessor
-from .. import util
+from markdown.extensions import Extension
+from markdown.blockprocessors import BlockProcessor
+from markdown.inlinepatterns import InlineProcessor
+from markdown.treeprocessors import Treeprocessor
+from markdown.postprocessors import Postprocessor
+from markdown import util
 from collections import OrderedDict
 import re
 import copy

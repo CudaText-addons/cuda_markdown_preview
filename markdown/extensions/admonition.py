@@ -27,8 +27,8 @@ for details.
 
 from __future__ import annotations
 
-from . import Extension
-from ..blockprocessors import BlockProcessor
+from markdown.extensions import Extension
+from markdown.blockprocessors import BlockProcessor
 import xml.etree.ElementTree as etree
 import re
 from typing import TYPE_CHECKING

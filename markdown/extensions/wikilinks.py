@@ -21,8 +21,8 @@ for details.
 
 from __future__ import annotations
 
-from . import Extension
-from ..inlinepatterns import InlineProcessor
+from markdown.extensions import Extension
+from markdown.inlinepatterns import InlineProcessor
 import xml.etree.ElementTree as etree
 import re
 from typing import Any

@@ -21,8 +21,8 @@ for details.
 
 from __future__ import annotations
 
-from . import Extension
-from ..blockprocessors import OListProcessor, UListProcessor
+from markdown.extensions import Extension
+from markdown.blockprocessors import OListProcessor, UListProcessor
 import re
 from typing import TYPE_CHECKING
 

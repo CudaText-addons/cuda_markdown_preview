@@ -21,8 +21,8 @@ for details.
 
 from __future__ import annotations
 
-from . import Extension
-from ..preprocessors import Preprocessor
+from markdown.extensions import Extension
+from markdown.preprocessors import Preprocessor
 import re
 import logging
 from typing import Any

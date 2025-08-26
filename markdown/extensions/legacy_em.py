@@ -13,8 +13,8 @@ This extension provides legacy behavior for _connected_words_.
 
 from __future__ import annotations
 
-from . import Extension
-from ..inlinepatterns import UnderscoreProcessor, EmStrongItem, EM_STRONG2_RE, STRONG_EM2_RE
+from markdown.extensions import Extension
+from markdown.inlinepatterns import UnderscoreProcessor, EmStrongItem, EM_STRONG2_RE, STRONG_EM2_RE
 import re
 
 # _emphasis_

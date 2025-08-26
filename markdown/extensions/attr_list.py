@@ -27,8 +27,8 @@ for details.
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from . import Extension
-from ..treeprocessors import Treeprocessor
+from markdown.extensions import Extension
+from markdown.treeprocessors import Treeprocessor
 import re
 
 if TYPE_CHECKING:  # pragma: no cover

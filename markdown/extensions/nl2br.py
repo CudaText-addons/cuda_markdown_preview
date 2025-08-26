@@ -23,8 +23,8 @@ for details.
 
 from __future__ import annotations
 
-from . import Extension
-from ..inlinepatterns import SubstituteTagInlineProcessor
+from markdown.extensions import Extension
+from markdown.inlinepatterns import SubstituteTagInlineProcessor
 
 BR_RE = r'\n'
 

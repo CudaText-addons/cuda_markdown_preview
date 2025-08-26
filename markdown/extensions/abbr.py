@@ -22,11 +22,11 @@ for details.
 
 from __future__ import annotations
 
-from . import Extension
-from ..blockprocessors import BlockProcessor
-from ..inlinepatterns import InlineProcessor
-from ..treeprocessors import Treeprocessor
-from ..util import AtomicString, deprecated
+from markdown.extensions import Extension
+from markdown.blockprocessors import BlockProcessor
+from markdown.inlinepatterns import InlineProcessor
+from markdown.treeprocessors import Treeprocessor
+from markdown.util import AtomicString, deprecated
 from typing import TYPE_CHECKING
 import re
 import xml.etree.ElementTree as etree

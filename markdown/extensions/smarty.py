@@ -85,10 +85,10 @@ for details.
 
 from __future__ import annotations
 
-from . import Extension
-from ..inlinepatterns import HtmlInlineProcessor, HTML_RE
-from ..treeprocessors import InlineProcessor
-from ..util import Registry
+from markdown.extensions import Extension
+from markdown.inlinepatterns import HtmlInlineProcessor, HTML_RE
+from markdown.treeprocessors import InlineProcessor
+from markdown.util import Registry
 from typing import TYPE_CHECKING, Sequence
 
 if TYPE_CHECKING:  # pragma: no cover

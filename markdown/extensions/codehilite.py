@@ -21,9 +21,9 @@ for details.
 
 from __future__ import annotations
 
-from . import Extension
-from ..treeprocessors import Treeprocessor
-from ..util import parseBoolValue
+from markdown.extensions import Extension
+from markdown.treeprocessors import Treeprocessor
+from markdown.util import parseBoolValue
 from typing import TYPE_CHECKING, Callable, Any
 
 if TYPE_CHECKING:  # pragma: no cover

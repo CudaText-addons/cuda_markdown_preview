@@ -36,7 +36,7 @@ for details.
 
 from __future__ import annotations
 
-from . import Extension
+from markdown.extensions import Extension
 
 extensions = [
     'fenced_code',

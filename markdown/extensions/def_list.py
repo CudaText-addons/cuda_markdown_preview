@@ -21,8 +21,8 @@ for details.
 
 from __future__ import annotations
 
-from . import Extension
-from ..blockprocessors import BlockProcessor, ListIndentProcessor
+from markdown.extensions import Extension
+from markdown.blockprocessors import BlockProcessor, ListIndentProcessor
 import xml.etree.ElementTree as etree
 import re
 

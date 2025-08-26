@@ -19,11 +19,11 @@ for details.
 
 from __future__ import annotations
 
-from . import Extension
-from ..treeprocessors import Treeprocessor
-from ..util import parseBoolValue, AMP_SUBSTITUTE, deprecated, HTML_PLACEHOLDER_RE, AtomicString
-from ..treeprocessors import UnescapeTreeprocessor
-from ..serializers import RE_AMP
+from markdown.extensions import Extension
+from markdown.treeprocessors import Treeprocessor
+from markdown.util import parseBoolValue, AMP_SUBSTITUTE, deprecated, HTML_PLACEHOLDER_RE, AtomicString
+from markdown.treeprocessors import UnescapeTreeprocessor
+from markdown.serializers import RE_AMP
 import re
 import html
 import unicodedata
