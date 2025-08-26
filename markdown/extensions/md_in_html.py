@@ -1,18 +1,25 @@
+# Python-Markdown Markdown in HTML Extension
+# ===============================
+
+# An implementation of [PHP Markdown Extra](http://michelf.com/projects/php-markdown/extra/)'s
+# parsing of Markdown syntax in raw HTML.
+
+# See https://Python-Markdown.github.io/extensions/raw_html
+# for documentation.
+
+# Copyright The Python Markdown Project
+
+# License: [BSD](https://opensource.org/licenses/bsd-license.php)
+
 """
-Python-Markdown Markdown in HTML Extension
-===============================
+Parse Markdown syntax within raw HTML.
+Based on the implementation in [PHP Markdown Extra](http://michelf.com/projects/php-markdown/extra/).
 
-An implementation of [PHP Markdown Extra](http://michelf.com/projects/php-markdown/extra/)'s
-parsing of Markdown syntax in raw HTML.
-
-See <https://Python-Markdown.github.io/extensions/raw_html>
-for documentation.
-
-Copyright The Python Markdown Project
-
-License: [BSD](https://opensource.org/licenses/bsd-license.php)
-
+See the [documentation](https://Python-Markdown.github.io/extensions/raw_html)
+for details.
 """
+
+from __future__ import annotations
 
 from . import Extension
 from ..blockprocessors import BlockProcessor
@@ -21,14 +28,19 @@ from ..postprocessors import RawHtmlPostprocessor
 from .. import util
 from ..htmlparser import HTMLExtractor, blank_line_re
 import xml.etree.ElementTree as etree
+from typing import TYPE_CHECKING, Literal, Mapping
+
+if TYPE_CHECKING:  # pragma: no cover
+    from markdown import Markdown
 
 
 class HTMLExtractorExtra(HTMLExtractor):
     """
-    Override HTMLExtractor and create etree Elements for any elements which should have content parsed as Markdown.
+    Override `HTMLExtractor` and create `etree` `Elements` for any elements which should have content parsed as
+    Markdown.
     """
 
-    def __init__(self, md, *args, **kwargs):
+    def __init__(self, md: Markdown, *args, **kwargs):
         # All block-level tags.
         self.block_level_tags = set(md.block_level_elements.copy())
         # Block-level tags in which the content only gets span level parsing
@@ -46,9 +58,10 @@ class HTMLExtractorExtra(HTMLExtractor):
 
     def reset(self):
         """Reset this instance.  Loses all unprocessed data."""
-        self.mdstack = []  # When markdown=1, stack contains a list of tags
+        self.mdstack: list[str] = []  # When markdown=1, stack contains a list of tags
         self.treebuilder = etree.TreeBuilder()
-        self.mdstate = []  # one of 'block', 'span', 'off', or None
+        self.mdstate: list[Literal['block', 'span', 'off', None]] = []
+        self.mdstarted: list[bool] = []
         super().reset()
 
     def close(self):
@@ -56,17 +69,17 @@ class HTMLExtractorExtra(HTMLExtractor):
         super().close()
         # Handle any unclosed tags.
         if self.mdstack:
-            # Close the outermost parent. handle_endtag will close all unclosed children.
+            # Close the outermost parent. `handle_endtag` will close all unclosed children.
             self.handle_endtag(self.mdstack[0])
 
-    def get_element(self):
-        """ Return element from treebuilder and reset treebuilder for later use. """
+    def get_element(self) -> etree.Element:
+        """ Return element from `treebuilder` and reset `treebuilder` for later use. """
         element = self.treebuilder.close()
         self.treebuilder = etree.TreeBuilder()
         return element
 
-    def get_state(self, tag, attrs):
-        """ Return state from tag and `markdown` attr. One of 'block', 'span', or 'off'. """
+    def get_state(self, tag, attrs: Mapping[str, str]) -> Literal['block', 'span', 'off', None]:
+        """ Return state from tag and `markdown` attribute. One of 'block', 'span', or 'off'. """
         md_attr = attrs.get('markdown', '0')
         if md_attr == 'markdown':
             # `<tag markdown>` is the same as `<tag markdown='1'>`.
@@ -99,8 +112,11 @@ class HTMLExtractorExtra(HTMLExtractor):
             self.handle_empty_tag(data, True)
             return
 
-        if tag in self.block_level_tags and (self.at_line_start() or self.intail):
-            # Valueless attr (ex: `<tag checked>`) results in `[('checked', None)]`.
+        if (
+            tag in self.block_level_tags and
+            (self.at_line_start() or self.intail or self.mdstarted and self.mdstarted[-1])
+        ):
+            # Valueless attribute (ex: `<tag checked>`) results in `[('checked', None)]`.
             # Convert to `{'checked': 'checked'}`.
             attrs = {key: value if value is not None else key for key, value in attrs}
             state = self.get_state(tag, attrs)
@@ -114,8 +130,10 @@ class HTMLExtractorExtra(HTMLExtractor):
                     self.handle_endtag('p')
                 self.mdstate.append(state)
                 self.mdstack.append(tag)
+                self.mdstarted.append(True)
                 attrs['markdown'] = state
                 self.treebuilder.start(tag, attrs)
+
         else:
             # Span level tag
             if self.inraw:
@@ -139,6 +157,7 @@ class HTMLExtractorExtra(HTMLExtractor):
                 while self.mdstack:
                     item = self.mdstack.pop()
                     self.mdstate.pop()
+                    self.mdstarted.pop()
                     self.treebuilder.end(item)
                     if item == tag:
                         break
@@ -151,13 +170,52 @@ class HTMLExtractorExtra(HTMLExtractor):
                     # If we only have one newline before block element, add another
                     if not item.endswith('\n\n') and item.endswith('\n'):
                         self.cleandoc.append('\n')
+
+                    # Flatten the HTML structure of "markdown" blocks such that when they
+                    # get parsed, content will be parsed similar inside the blocks as it
+                    # does outside the block. Having real HTML elements in the tree before
+                    # the content adjacent content is processed can cause unpredictable
+                    # issues for extensions.
+                    current = element
+                    last = []
+                    while current is not None:
+                        for child in list(current):
+                            current.remove(child)
+                            text = current.text if current.text is not None else ''
+                            tail = child.tail if child.tail is not None else ''
+                            child.tail = None
+                            state = child.attrib.get('markdown', 'off')
+
+                            # Add a newline to tail if it is not just a trailing newline
+                            if tail != '\n':
+                                tail = '\n' + tail.rstrip('\n')
+
+                            # Ensure there is an empty new line between blocks
+                            if not text.endswith('\n\n'):
+                                text = text.rstrip('\n') + '\n\n'
+
+                            # Process the block nested under the span appropriately
+                            if state in ('span', 'block'):
+                                current.text = f'{text}{self.md.htmlStash.store(child)}{tail}'
+                                last.append(child)
+                            else:
+                                # Non-Markdown HTML will not be recursively parsed for Markdown,
+                                # so we can just remove markers and leave them unflattened.
+                                # Additionally, we don't need to append to our list for further
+                                # processing.
+                                child.attrib.pop('markdown')
+                                [c.attrib.pop('markdown', None) for c in child.iter()]
+                                current.text = f'{text}{self.md.htmlStash.store(child)}{tail}'
+                        # Target the child elements that have been expanded.
+                        current = last.pop(0) if last else None
+
                     self.cleandoc.append(self.md.htmlStash.store(element))
                     self.cleandoc.append('\n\n')
                     self.state = []
                     # Check if element has a tail
                     if not blank_line_re.match(
                             self.rawdata[self.line_offset + self.offset + len(self.get_endtag_text(tag)):]):
-                        # More content exists after endtag.
+                        # More content exists after `endtag`.
                         self.intail = True
             else:
                 # Treat orphan closing tag as a span level tag.
@@ -196,6 +254,7 @@ class HTMLExtractorExtra(HTMLExtractor):
         if self.inraw or not self.mdstack:
             super().handle_data(data)
         else:
+            self.mdstarted[-1] = False
             self.treebuilder.data(data)
 
     def handle_empty_tag(self, data, is_block):
@@ -204,23 +263,33 @@ class HTMLExtractorExtra(HTMLExtractor):
         else:
             if self.at_line_start() and is_block:
                 self.handle_data('\n' + self.md.htmlStash.store(data) + '\n\n')
-            else:
+            elif self.mdstate and self.mdstate[-1] == "off":
                 self.handle_data(self.md.htmlStash.store(data))
+            else:
+                self.handle_data(data)
 
-    def parse_pi(self, i):
+    def parse_pi(self, i: int) -> int:
         if self.at_line_start() or self.intail or self.mdstack:
-            # The same override exists in HTMLExtractor without the check
-            # for mdstack. Therefore, use HTMLExtractor's parent instead.
+            # The same override exists in `HTMLExtractor` without the check
+            # for `mdstack`. Therefore, use parent of `HTMLExtractor` instead.
             return super(HTMLExtractor, self).parse_pi(i)
         # This is not the beginning of a raw block so treat as plain data
         # and avoid consuming any tags which may follow (see #1066).
         self.handle_data('<?')
         return i + 2
 
-    def parse_html_declaration(self, i):
+    def parse_html_declaration(self, i: int) -> int:
         if self.at_line_start() or self.intail or self.mdstack:
-            # The same override exists in HTMLExtractor without the check
-            # for mdstack. Therefore, use HTMLExtractor's parent instead.
+            if self.rawdata[i:i+3] == '<![' and not self.rawdata[i:i+9] == '<![CDATA[':
+                # We have encountered the bug in #1534 (Python bug `gh-77057`).
+                # Provide an override until we drop support for Python < 3.13.
+                result = self.parse_bogus_comment(i)
+                if result == -1:
+                    self.handle_data(self.rawdata[i:i + 1])
+                    return i + 1
+                return result
+            # The same override exists in `HTMLExtractor` without the check
+            # for `mdstack`. Therefore, use parent of `HTMLExtractor` instead.
             return super(HTMLExtractor, self).parse_html_declaration(i)
         # This is not the beginning of a raw block so treat as plain data
         # and avoid consuming any tags which may follow (see #1066).
@@ -231,7 +300,7 @@ class HTMLExtractorExtra(HTMLExtractor):
 class HtmlBlockPreprocessor(Preprocessor):
     """Remove html blocks from the text and store them for later retrieval."""
 
-    def run(self, lines):
+    def run(self, lines: list[str]) -> list[str]:
         source = '\n'.join(lines)
         parser = HTMLExtractorExtra(self.md)
         parser.feed(source)
@@ -240,71 +309,74 @@ class HtmlBlockPreprocessor(Preprocessor):
 
 
 class MarkdownInHtmlProcessor(BlockProcessor):
-    """Process Markdown Inside HTML Blocks which have been stored in the HtmlStash."""
+    """Process Markdown Inside HTML Blocks which have been stored in the `HtmlStash`."""
 
-    def test(self, parent, block):
-        # ALways return True. `run` will return `False` it not a valid match.
+    def test(self, parent: etree.Element, block: str) -> bool:
+        # Always return True. `run` will return `False` it not a valid match.
         return True
 
-    def parse_element_content(self, element):
+    def parse_element_content(self, element: etree.Element) -> None:
         """
-        Recursively parse the text content of an etree Element as Markdown.
+        Recursively parse the text content of an `etree` Element as Markdown.
 
         Any block level elements generated from the Markdown will be inserted as children of the element in place
         of the text content. All `markdown` attributes are removed. For any elements in which Markdown parsing has
-        been disabled, the text content of it and its chidlren are wrapped in an `AtomicString`.
+        been disabled, the text content of it and its children are wrapped in an `AtomicString`.
         """
 
         md_attr = element.attrib.pop('markdown', 'off')
 
         if md_attr == 'block':
-            # Parse content as block level
-            # The order in which the different parts are parsed (text, children, tails) is important here as the
-            # order of elements needs to be preserved. We can't be inserting items at a later point in the current
-            # iteration as we don't want to do raw processing on elements created from parsing Markdown text (for
-            # example). Therefore, the order of operations is children, tails, text.
-
-            # Recursively parse existing children from raw HTML
-            for child in list(element):
-                self.parse_element_content(child)
-
-            # Parse Markdown text in tail of children. Do this separate to avoid raw HTML parsing.
-            # Save the position of each item to be inserted later in reverse.
-            tails = []
-            for pos, child in enumerate(element):
-                if child.tail:
-                    block = child.tail.rstrip('\n')
-                    child.tail = ''
-                    # Use a dummy placeholder element.
-                    dummy = etree.Element('div')
-                    self.parser.parseBlocks(dummy, block.split('\n\n'))
-                    children = list(dummy)
-                    children.reverse()
-                    tails.append((pos + 1, children))
-
-            # Insert the elements created from the tails in reverse.
-            tails.reverse()
-            for pos, tail in tails:
-                for item in tail:
-                    element.insert(pos, item)
-
-            # Parse Markdown text content. Do this last to avoid raw HTML parsing.
+            # Parse the block elements content as Markdown
             if element.text:
                 block = element.text.rstrip('\n')
                 element.text = ''
-                # Use a dummy placeholder element as the content needs to get inserted before existing children.
-                dummy = etree.Element('div')
-                self.parser.parseBlocks(dummy, block.split('\n\n'))
-                children = list(dummy)
-                children.reverse()
-                for child in children:
-                    element.insert(0, child)
+                self.parser.parseBlocks(element, block.split('\n\n'))
 
         elif md_attr == 'span':
-            # Span level parsing will be handled by inlineprocessors.
-            # Walk children here to remove any `markdown` attributes.
-            for child in list(element):
-                self.parse_element_content(child)
+            # Span elements need to be recursively processed for block elements and raw HTML
+            # as their content is not normally accessed by block processors, so expand stashed
+            # HTML under the span. Span content itself will not be parsed here, but will await
+            # the inline parser.
+            block = element.text if element.text is not None else ''
+            element.text = ''
+            child = None
+            start = 0
+
+            # Search the content for HTML placeholders and process the elements
+            for m in util.HTML_PLACEHOLDER_RE.finditer(block):
+                index = int(m.group(1))
+                el = self.parser.md.htmlStash.rawHtmlBlocks[index]
+                end = m.start()
+
+                if isinstance(el, etree.Element):
+                    # Replace the placeholder with the element and process it.
+                    # Content after the placeholder should be attached to the tail.
+                    if child is None:
+                        element.text += block[start:end]
+                    else:
+                        child.tail += block[start:end]
+                    element.append(el)
+                    self.parse_element_content(el)
+                    child = el
+                    if child.tail is None:
+                        child.tail = ''
+                    self.parser.md.htmlStash.rawHtmlBlocks.pop(index)
+                    self.parser.md.htmlStash.rawHtmlBlocks.insert(index, '')
+
+                else:
+                    # Not an element object, so insert content back into the element
+                    if child is None:
+                        element.text += block[start:end]
+                    else:
+                        child.tail += block[start:end]
+                start = end
+
+            # Insert anything left after last element
+            if child is None:
+                element.text += block[start:]
+            else:
+                child.tail += block[start:]
 
         else:
             # Disable inline parsing for everything else
@@ -316,28 +388,32 @@ class MarkdownInHtmlProcessor(BlockProcessor):
                 if child.tail:
                     child.tail = util.AtomicString(child.tail)
 
-    def run(self, parent, blocks):
+    def run(self, parent: etree.Element, blocks: list[str]) -> bool:
         m = util.HTML_PLACEHOLDER_RE.match(blocks[0])
         if m:
             index = int(m.group(1))
             element = self.parser.md.htmlStash.rawHtmlBlocks[index]
             if isinstance(element, etree.Element):
                 # We have a matched element. Process it.
-                blocks.pop(0)
-                self.parse_element_content(element)
+                block = blocks.pop(0)
                 parent.append(element)
+                self.parse_element_content(element)
                 # Cleanup stash. Replace element with empty string to avoid confusing postprocessor.
                 self.parser.md.htmlStash.rawHtmlBlocks.pop(index)
                 self.parser.md.htmlStash.rawHtmlBlocks.insert(index, '')
-                # Confirm the match to the blockparser.
+                content = block[m.end(0):]
+                # Ensure the rest of the content gets handled
+                if content:
+                    blocks.insert(0, content)
+                # Confirm the match to the `blockparser`.
                 return True
         # No match found.
         return False
 
 
 class MarkdownInHTMLPostprocessor(RawHtmlPostprocessor):
-    def stash_to_string(self, text):
-        """ Override default to handle any etree elements still in the stash. """
+    def stash_to_string(self, text: str | etree.Element) -> str:
+        """ Override default to handle any `etree` elements still in the stash. """
         if isinstance(text, etree.Element):
             return self.md.serializer(text)
         else:
@@ -352,7 +428,7 @@ class MarkdownInHtmlExtension(Extension):
 
         # Replace raw HTML preprocessor
         md.preprocessors.register(HtmlBlockPreprocessor(md), 'html_block', 20)
-        # Add blockprocessor which handles the placeholders for etree elements
+        # Add `blockprocessor` which handles the placeholders for `etree` elements
         md.parser.blockprocessors.register(
             MarkdownInHtmlProcessor(md.parser), 'markdown_block', 105
         )
