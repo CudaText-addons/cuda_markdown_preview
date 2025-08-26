@@ -1,3 +1,8 @@
+2025.08.27
++ add: avoid using /tmp, use ~/tmp instead (on Linux/Unix) because Firefox cannot open HTML-file from /tmp on Alexey's PC
++ add: update Markdown lib
++ add: update Pygments lib
+
 2023.05.04
 - fix: plugin gave error on Windows on Python 3.8 (fix by @fogcell)
 
