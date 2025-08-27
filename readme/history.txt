@@ -1,4 +1,5 @@
 2025.08.27
+* change: plugin don't support Python 3.8-3.9 anymore, so on Windows you need to install from Addons Manager: "Windows_Python_310_XXbit"
 + add: avoid using /tmp, use ~/tmp instead (on Linux/Unix) because Firefox cannot open HTML-file from /tmp on Alexey's PC
 + add: update Markdown lib
 + add: update Pygments lib
