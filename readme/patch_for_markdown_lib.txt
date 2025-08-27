@@ -1,0 +1,1 @@
+https://github.com/CudaText-addons/cuda_markdown_preview/commit/a27faa38178cbaeaa966ddb04561c8a5e3d00a90
