@@ -14,8 +14,9 @@ from .cuda_markdown_options import ext
 md = markdown.Markdown(extensions=ext)
 
 # avoid /tmp because Firefox cannot open HTML-file from there on Alexey's Ubuntu
-tempfile.tempdir = os.path.expanduser('~/tmp')
-os.makedirs(tempfile.tempdir, exist_ok=True)
+if os.name != 'nt':
+    tempfile.tempdir = os.path.expanduser('~/tmp')
+    os.makedirs(tempfile.tempdir, exist_ok=True)
 
 dir_temp = os.path.join(tempfile.gettempdir(), 'cuda_markdown_preview')
 fn_config = os.path.join(app_path(APP_DIR_SETTINGS), 'plugins.ini')
