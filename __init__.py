@@ -2,8 +2,8 @@ import sys
 import os
 import tempfile
 from cudatext import *
+from cudax_lib import safe_open_url, get_translation
 
-from cudax_lib import get_translation
 _ = get_translation(__file__)  # I18N
 
 sys.path.insert(0, os.path.dirname(__file__)) # insert, so OS's module won't be used
@@ -32,17 +32,6 @@ LIVE_SCRIPT = """
             }
 </script>
 """
-
-def safe_open_url(url):
-    '''
-    On Windows 10, app crashes when webbrowser.open* is called with running LSP server.
-    '''
-    if os.name=='nt':
-        import subprocess
-        subprocess.Popen(['start', '', url], shell=True)
-    else:
-        import webbrowser
-        webbrowser.open_new_tab(url)
 
 
 class Command:
