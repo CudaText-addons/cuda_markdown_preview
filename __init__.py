@@ -78,7 +78,7 @@ class Command:
         if os.path.isfile(fn_temp):
             if not only_reload:
                 if self.live:
-                    app_proc(PROC_SET_EVENTS, 'cuda_markdown_preview;on_exit,on_change_slow;Markdown;') 
+                    app_proc(PROC_EVENTS_SUB, 'cuda_markdown_preview;on_change_slow;Markdown;') 
                 msg_status(_('Opening HTML preview...'))
                 safe_open_url('file://'+fn_temp)
         else:
